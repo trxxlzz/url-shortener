@@ -21,7 +21,6 @@ jobs:
         uses: actions/checkout@v2
         with:
           ref: ${{ github.event.inputs.tag }}
-
       - name: Check if tag exists
         run: |
           git fetch --all --tags
@@ -29,35 +28,14 @@ jobs:
             echo "error: Tag '${{ github.event.inputs.tag }}' not found"
             exit 1
           fi
-
-      - name: Clear Go cache
-        run: |
-          rm -rf ~/.cache/go-build
-          rm -rf ~/.go/pkg/mod
-
       - name: Set up Go
         uses: actions/setup-go@v4
         with:
           go-version: '1.23'
-
-      - name: Cache Go modules and build cache
-        uses: actions/cache@v2
-        with:
-          path: |
-            ~/.cache/go-build
-            ~/.go/pkg/mod
-          key: ${{ runner.os }}-go-1.23-${{ hashFiles('url-shortener/go.mod') }}  # замените путь, если go.mod в другом месте
-          restore-keys: |
-            ${{ runner.os }}-go-1.23-
-
-      - name: Check Go version after setup
-        run: go version
-
       - name: Build app
         run: |
           go mod download
           go build -o url-shortener ./cmd/url-shortener
-
       - name: Deploy to VM
         run: |
           sudo apt-get install -y ssh rsync
@@ -67,7 +45,6 @@ jobs:
           rsync -avz -e 'ssh -i deploy_key.pem -o StrictHostKeyChecking=no' --exclude='.git' ./ ${{ env.HOST }}:${{ env.DEPLOY_DIRECTORY }}
         env:
           DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
-
       - name: Remove old systemd service file
         run: |
           ssh -i deploy_key.pem -o StrictHostKeyChecking=no ${{ env.HOST }} "rm -f /etc/systemd/system/url-shortener.service"
@@ -93,3 +70,8 @@ jobs:
       - name: Start application
         run: |
           ssh -i deploy_key.pem -o StrictHostKeyChecking=no ${{ env.HOST }} "systemctl daemon-reload && systemctl start url-shortener"
+          
+          
+          
+          
+          
