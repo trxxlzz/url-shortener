@@ -28,11 +28,29 @@ jobs:
             echo "error: Tag '${{ github.event.inputs.tag }}' not found"
             exit 1
           fi
+      - name: Clear Go cache
+        run: |
+          rm -rf ~/.cache/go-build
+          rm -rf ~/.go/pkg/mod
+
       - name: Set up Go
         uses: actions/setup-go@v4
         with:
           go-version: '1.23'
-        cashe: false
+
+      - name: Cache Go modules and build cache
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/.go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.mod') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      - name: Check Go version
+        run: go version
+
       - name: Build app
         run: |
           go mod download
