@@ -48,7 +48,7 @@ func New(log *slog.Logger, urlGetter URLGetter) http.HandlerFunc {
 			return
 		}
 		if err != nil {
-			log.Error("failed to get url", sl.Err(err))
+			log.Error("failed to get url", sl.Err(err), slog.String("alias", alias))
 
 			render.JSON(w, r, resp.Error("internal error"))
 
